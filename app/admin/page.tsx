@@ -1,19 +1,32 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export default function AdminPage() {
+  const { connected, publicKey } = useWallet();
   const [distributionTarget, setDistributionTarget] = useState(2500);
   const [attentionValue, setAttentionValue] = useState(73);
   const [status, setStatus] = useState<string | null>(null);
+  const founderWallet = process.env.NEXT_PUBLIC_FOUNDER_WALLET || "";
+  const connectedWallet = publicKey?.toBase58() || "";
+  const canAdmin = connected && founderWallet.length > 0 && connectedWallet === founderWallet;
 
   function handleDistribute(event: FormEvent) {
     event.preventDefault();
+    if (!canAdmin) {
+      setStatus("Unauthorized: connect founder wallet to use admin controls.");
+      return;
+    }
     setStatus(`Queued founder distribution: ${distributionTarget} $TOWEL.`);
   }
 
   function handleAttention(event: FormEvent) {
     event.preventDefault();
+    if (!canAdmin) {
+      setStatus("Unauthorized: connect founder wallet to use admin controls.");
+      return;
+    }
     setStatus(`Published attention update: ${attentionValue}% confidence.`);
   }
 
@@ -22,6 +35,9 @@ export default function AdminPage() {
       <section className="panel" style={{ padding: "1rem" }}>
         <h1 style={{ marginTop: 0 }}>Founder Admin Panel</h1>
         <p className="muted">Execute founder distribution and publish network attention updates.</p>
+        <p className="muted" style={{ marginBottom: 0 }}>
+          Access: {canAdmin ? "authorized founder wallet" : "read-only"}
+        </p>
       </section>
       <section className="grid two">
         <form onSubmit={handleDistribute} className="panel" style={{ padding: "1rem", display: "grid", gap: "0.6rem" }}>
@@ -35,7 +51,7 @@ export default function AdminPage() {
             onChange={(e) => setDistributionTarget(Number(e.target.value))}
             style={{ borderRadius: 10, border: "1px solid #345", background: "#071422", color: "var(--text)", padding: "0.55rem" }}
           />
-          <button className="button" type="submit">
+          <button className="button" type="submit" disabled={!canAdmin}>
             Push Distribution
           </button>
         </form>
@@ -51,7 +67,7 @@ export default function AdminPage() {
             onChange={(e) => setAttentionValue(Number(e.target.value))}
             style={{ borderRadius: 10, border: "1px solid #345", background: "#071422", color: "var(--text)", padding: "0.55rem" }}
           />
-          <button className="button" type="submit">
+          <button className="button" type="submit" disabled={!canAdmin}>
             Publish Update
           </button>
         </form>

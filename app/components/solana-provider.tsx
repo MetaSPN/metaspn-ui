@@ -9,7 +9,7 @@ import {
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 
 export function SolanaProvider({ children }: PropsWithChildren) {
-  const endpoint = "https://api.devnet.solana.com";
+  const endpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
   const wallets = useMemo(
     () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
     []
@@ -17,7 +17,7 @@ export function SolanaProvider({ children }: PropsWithChildren) {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
+      <WalletProvider wallets={wallets}>
         <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
